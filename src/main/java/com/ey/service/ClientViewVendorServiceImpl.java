@@ -110,10 +110,13 @@ public ResponseEntity<?> getVendorByEmail(String email) {
           //  logger.warn("no vendors with basePrice > {}", amount);
             return new ResponseEntity<>("No vendors found for the given base price (greater than)", HttpStatus.NOT_FOUND);
         }
-        List<VendorRegistrationResponse> result = vendors.stream()
-                .map(VendorMapper::vendorToResponse)
-                .toList();
-        return ResponseEntity.ok(result);
+        List<VendorRegistrationResponse> vendorList  = new ArrayList<>();
+		for(Vendor vendor : vendors)
+		{
+			vendorList.add(VendorMapper.vendorToResponse(vendor));
+		}
+		return ResponseEntity.ok(vendorList);
+        
 }
 
 @Override
@@ -147,4 +150,110 @@ public ResponseEntity<?> getVendorByEmail(String email) {
 
 
 
+
+
+//Service impl: parse String -> Enum (case-insensitive, tolerant of spaces/hyphens/underscores)
+@Override
+public ResponseEntity<?> getVendorsByServiceType(String serviceType) {
+ if (serviceType == null || serviceType.isBlank()) {
+     return new ResponseEntity<>("serviceType is required", HttpStatus.BAD_REQUEST);
+ }
+
+ // Normalize: trim, upper, replace spaces/hyphens with underscore
+ String normalized = serviceType.trim()
+                               .toUpperCase()
+                               .replace('-', '_')
+                               .replace(' ', '_');
+
+ final ServiceType type;
+ try {
+     type = ServiceType.valueOf(normalized);
+ } catch (IllegalArgumentException ex) {
+     return new ResponseEntity<>(
+         "Invalid serviceType. Allowed values: " + java.util.Arrays.toString(ServiceType.values()),
+         HttpStatus.BAD_REQUEST
+     );
+ }
+
+ List<Vendor> vendors = vendorRepository.findByServiceType(type);
+ if (vendors == null || vendors.isEmpty()) {
+     return new ResponseEntity<>("No vendors found for serviceType: " + type, HttpStatus.NOT_FOUND);
+ }
+ List<VendorRegistrationResponse> vendorList  = new ArrayList<>();
+ for(Vendor vendor : vendors)
+	{
+		vendorList.add(VendorMapper.vendorToResponse(vendor));
+	}
+	return ResponseEntity.ok(vendorList);
+
+}
+
+
+
+
+@Override
+public ResponseEntity<?> getVendorsByServiceTypeAndBasePrice(String serviceType, Double basePrice) {
+    // --- Parse & validate inputs here (both serviceType and basePrice) ---
+
+    // 1) Parse serviceType String -> Enum (case-insensitive, tolerant of spaces, hyphens, underscores)
+    ServiceType type = parseServiceType(serviceType);
+    if (type == null) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Invalid serviceType: '" + serviceType + "'. Allowed: " +
+                        java.util.Arrays.toString(ServiceType.values()));
+    }
+
+    // 2) Validate basePrice (Double) is present and non-negative (you can relax this if not needed)
+    if (basePrice == null) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("basePrice is required.");
+    }
+    if (basePrice < 0) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("basePrice cannot be negative.");
+    }
+
+    // --- Repository call ---
+    List<Vendor> vendors = vendorRepository.findByServiceTypeAndBasePrice(type, basePrice);
+    if (vendors == null || vendors.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body("No vendors found for serviceType '" + type + "' with basePrice " + basePrice);
+    }
+
+    // --- Map to response DTOs ---
+    List<VendorRegistrationResponse> vendorList = new ArrayList<>();
+    for (Vendor vendor : vendors) {
+        vendorList.add(VendorMapper.vendorToResponse(vendor));
+    }
+    return ResponseEntity.ok(vendorList);
+}
+
+/* ---- helpers (keep in the same service impl) ---- */
+private ServiceType parseServiceType(String input) {
+    if (input == null) return null;
+
+    // Normalize: trim, unify separators, collapse spaces, uppercase, remove spaces/underscores
+    String normalized = input.trim()
+            .replace('-', ' ')
+            .replace('_', ' ')
+            .replaceAll("\\s+", " ")
+            .toUpperCase()
+            .replace(" ", ""); // e.g., "Photo Graphy" -> "PHOTOGRAPHY"
+
+    for (ServiceType t : ServiceType.values()) {
+        String enumKey = t.name().toUpperCase().replace("_", "");
+        if (enumKey.equals(normalized)) {
+            return t;
+        }
+    }
+    return null;
+}
+
+
+
+
+
+
+
+   
 }

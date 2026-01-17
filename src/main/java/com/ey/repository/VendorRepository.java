@@ -26,5 +26,9 @@ public interface VendorRepository extends JpaRepository<Vendor, Long> {
 
 	List<Vendor> findByServiceType(ServiceType type);
 
+	List<Vendor> findByServiceTypeAndBasePrice(ServiceType type, Double basePrice);
+
+	//List<Vendor> findByServiceTypeIgnoreCaseAndBasePrice(String serviceType, Double basePrice);
+
 	
 }

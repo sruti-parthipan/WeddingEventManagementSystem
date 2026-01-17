@@ -45,7 +45,7 @@ public ResponseEntity<?> getAllVendors() {
 
 // Get vendors by ServiceType (enum)
 // Example: GET /api/client/vendors/by-service-type?serviceType=PHOTOGRAPHY
-@GetMapping("/by-service-type")
+@GetMapping("/by-service-type/{serviceType}")
 public ResponseEntity<?> getVendorsByServiceType(@PathVariable String serviceType) {
     return clientViewVendorService.getVendorsByServiceType(serviceType);
 }
@@ -69,6 +69,13 @@ public ResponseEntity<?> getVendorsByServiceType(@PathVariable String serviceTyp
                                                           @PathVariable Double max) {
         return clientViewVendorService.getVendorsByBasePriceBetween(min, max);
     }
+
+@GetMapping("/by/{serviceType}/{basePrice}")
+public ResponseEntity<?> getVendorsByServiceTypeAndBasePrice(@PathVariable String serviceType,
+                                                             @PathVariable Double basePrice) {
+    return clientViewVendorService.getVendorsByServiceTypeAndBasePrice(serviceType, basePrice);
+}
+
 
 
 }

@@ -24,4 +24,9 @@ public interface ClientViewVendorService {
 
 	ResponseEntity<?> getVendorsByServiceType(String serviceType);
 
+	ResponseEntity<?> getVendorsByServiceTypeAndBasePrice(String serviceType, Double basePrice);
+
+
+
+	
 }

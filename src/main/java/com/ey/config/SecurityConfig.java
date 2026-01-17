@@ -62,6 +62,7 @@ package com.ey.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -112,8 +113,17 @@ public class SecurityConfig {
          //    (Must be BEFORE the generic /api/client/** rule)
          .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/client/vendors/**")
              .hasAnyRole("CLIENT", "ADMIN")
+             .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/client/events/**")
+             .hasAnyRole("CLIENT", "ADMIN")
+.requestMatchers(HttpMethod.GET,  "/api/vendor/bookings").hasRole("VENDOR")
+.requestMatchers(HttpMethod.PUT,
+    "/api/vendor/bookings/*/accept",
+    "/api/vendor/bookings/accept/*",
+    "/api/vendor/bookings/*/cancel",
+    "/api/vendor/bookings/cancel/*"
+).hasRole("VENDOR")
 
-
+.requestMatchers(HttpMethod.POST, "/api/vendor/bookings/*/confirm-payment").hasRole("VENDOR")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 //some operation of client can be done by only client like create event,book
                 .requestMatchers("/api/client/**").hasRole("CLIENT")
