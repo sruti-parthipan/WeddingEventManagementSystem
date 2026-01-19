@@ -3,8 +3,16 @@ package com.ey.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.ey.dto.request.EventRegistrationRequest;
 import com.ey.dto.request.EventUpdateRequest;
@@ -30,10 +38,14 @@ public class ClientEventController {
     }
 
     @GetMapping
+   // @PreAuthorize("hasAnyRole('ADMIN','CLIENT')")
     public ResponseEntity<?> listMyEvents(Authentication auth) {
         return clientEventService.listMyEvents(auth.getName());
     }
-
+    @GetMapping("/by-id/{id}")
+    public ResponseEntity<?> listMyEventsById(@PathVariable Long id, Authentication auth) {
+        return clientEventService.getEventById(id,auth.getName() );
+    }
     @GetMapping("/title/{title}")
     public ResponseEntity<?> listMyEventsByTitle(@PathVariable String title, Authentication auth) {
         return clientEventService.listMyEventsByTitle(title,auth.getName() );

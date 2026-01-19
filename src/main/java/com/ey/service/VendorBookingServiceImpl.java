@@ -375,11 +375,21 @@ public class VendorBookingServiceImpl implements VendorBookingService {
 
         // 404 — payment must exist for the booking's event
         Long eventId = b.getEvent().getId();
-        Payment p = paymentRepository.findTopByEvent_IdOrderByCreatedAtDesc(eventId).orElse(null);
-        if (p == null) {
-            logger.warn("No payment found for this event");
-            throw new PaymentNotFoundException("No payment found for this event");
-        }
+
+     // NEW (RIGHT) — latest PENDING by booking
+     Payment p = paymentRepository
+             .findTopByBooking_IdAndStatusOrderByCreatedAtDesc(bookingId, PaymentStatus.PENDING)
+             .orElse(null);
+     if (p == null) {
+         logger.warn("No pending payment found for this booking");
+         throw new PaymentNotFoundException("No pending payment found for this booking");
+     }
+
+//        Payment p = paymentRepository.findTopByEvent_IdOrderByCreatedAtDesc(eventId).orElse(null);
+//        if (p == null) {
+//            logger.warn("No payment found for this event");
+//            throw new PaymentNotFoundException("No payment found for this event");
+//        }
 
         // 400 — payment must be PENDING
         if (p.getStatus() != PaymentStatus.PENDING) {

@@ -24,4 +24,14 @@ public interface EventRepository  extends JpaRepository<Event, Long> {
 
 	Optional<Event> findByIdAndClient_Id(Long eventId, Long id);
 
+	List<Event> findAllByOrderByCreatedAtDesc();
+
+	List<Event> findByTitleIgnoreCase(String title);
+
+	List<Event> findByStatus(EventStatus st);
+
+	List<Event> findByEventDate(String date);
+
+	List<Event> findByVenueIgnoreCase(String venue);
+
 }

@@ -27,4 +27,7 @@ public interface ClientEventService {
 
 	ResponseEntity<?> deleteEvent(Long id, String name);
 
+	ResponseEntity<?> getEventById(Long id, String email);
+
+
 }

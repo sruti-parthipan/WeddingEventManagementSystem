@@ -48,14 +48,18 @@
 
 package com.ey.config;
 
-import com.ey.enums.Role;
-import com.ey.repository.AdminRepository;
-import com.ey.repository.ClientRepository;
-import com.ey.repository.VendorRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import com.ey.entities.Admin;
+import com.ey.entities.Client;
+import com.ey.entities.Vendor;
+import com.ey.enums.Role;
+import com.ey.repository.AdminRepository;
+import com.ey.repository.ClientRepository;
+import com.ey.repository.VendorRepository;
 
 @Service
 public class MultiUserDetailsService implements UserDetailsService {
@@ -73,19 +77,19 @@ public class MultiUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         // Check Admin
-        var admin = adminRepo.findByEmail(email).orElse(null);
+        Admin admin = adminRepo.findByEmail(email).orElse(null);
         if (admin != null) {
             return new UserPrincipal(admin.getId(), admin.getEmail(), admin.getPassword(), Role.ADMIN, admin.getName());
         }
 
         // Check Client
-        var client = clientRepo.findByEmail(email).orElse(null);
+        Client client = clientRepo.findByEmail(email).orElse(null);
         if (client != null) {
             return new UserPrincipal(client.getId(), client.getEmail(), client.getPassword(), Role.CLIENT, client.getName());
         }
 
         // Check Vendor
-        var vendor = vendorRepo.findByContactEmail(email).orElse(null); // Adjust if vendor uses 'email' field
+        Vendor vendor = vendorRepo.findByContactEmail(email).orElse(null); // Adjust if vendor uses 'email' field
         if (vendor != null) {
             return new UserPrincipal(vendor.getId(), vendor.getContactEmail(), vendor.getPassword(), Role.VENDOR, vendor.getName());
         }
