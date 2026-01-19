@@ -2,6 +2,8 @@ package com.ey.service;
 
 import java.time.format.DateTimeFormatter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -12,6 +14,8 @@ import com.ey.dto.request.ClientRegistrationRequest;
 import com.ey.dto.response.ClientRegistrationResponse;
 import com.ey.entities.Client;
 import com.ey.enums.Role;
+import com.ey.exception.ClientCreationException;
+import com.ey.exception.EmailAlreadyExistsException;
 import com.ey.repository.ClientRepository;
 import com.ey.security.JwtUtil;
 
@@ -28,17 +32,22 @@ public class ClientServiceImpl implements ClientService {
 
 	@Autowired
 	private JwtUtil jwtUtil;
+	    
+	    private static final Logger logger = LoggerFactory.getLogger(ClientReviewServiceImpl.class);
 	    @Override
 	    @Transactional
-	
-	public ResponseEntity<?> createClient(@Valid ClientRegistrationRequest request) {
-		// TODO Auto-generated method stub
-		 if (clientRepository.findByEmail(request.getEmail()).isPresent()) {
-	            return ResponseEntity.badRequest().body("Email already exists");
-	        }
+public ResponseEntity<?> createClient(@Valid ClientRegistrationRequest request) {
 
+    logger.info("Client registration attempt started");
 
-Client c = new Client();
+    // Email exists check
+    if (clientRepository.findByEmail(request.getEmail()).isPresent()) {
+        logger.warn("Email already exists");
+        throw new EmailAlreadyExistsException("Email already exists");
+    }
+
+    try {
+        Client c = new Client();
         c.setName(request.getName());
         c.setEmail(request.getEmail());
         c.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -48,11 +57,13 @@ Client c = new Client();
 
         Client saved = clientRepository.save(c);
 
-ClientRegistrationResponse resp = new ClientRegistrationResponse();
+        logger.info("Client created successfully");
+
+        ClientRegistrationResponse resp = new ClientRegistrationResponse();
         resp.setId(saved.getId());
         resp.setName(saved.getName());
         resp.setEmail(saved.getEmail());
-        resp.setRole(saved.getRole()); // enum
+        resp.setRole(saved.getRole());
         resp.setPhone(saved.getPhone());
         resp.setPassword(saved.getPassword());
         resp.setAddress(saved.getAddress());
@@ -61,12 +72,51 @@ ClientRegistrationResponse resp = new ClientRegistrationResponse();
         resp.setUpdatedAt(saved.getUpdatedAt() != null
                 ? saved.getUpdatedAt().formatted(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
 
-        // If your ClientRegistrationResponse uses String timestamps:
-       // resp.setCreatedAt(saved.getCreatedAt() != null ? saved.getCreatedAt().format(ISO) : null);
-       // resp.setUpdatedAt(saved.getUpdatedAt() != null ? saved.getUpdatedAt().format(ISO) : null);
-
         return ResponseEntity.ok(resp);
 
-	}
+   
 
+    } catch (Exception ex) {
+        logger.error("Unexpected error during client creation", ex);
+        throw new ClientCreationException("Client creation failed");
+    }
+	    }
 }
+
+//	public ResponseEntity<?> createClient(@Valid ClientRegistrationRequest request) {
+//		// TODO Auto-generated method stub
+//		 if (clientRepository.findByEmail(request.getEmail()).isPresent()) {
+//	            return ResponseEntity.badRequest().body("Email already exists");
+//	        }
+//
+//
+//Client c = new Client();
+//        c.setName(request.getName());
+//        c.setEmail(request.getEmail());
+//        c.setPassword(passwordEncoder.encode(request.getPassword()));
+//        c.setPhone(request.getPhone());
+//        c.setAddress(request.getAddress());
+//        c.setRole(Role.CLIENT);
+//
+//        Client saved = clientRepository.save(c);
+//
+//ClientRegistrationResponse resp = new ClientRegistrationResponse();
+//        resp.setId(saved.getId());
+//        resp.setName(saved.getName());
+//        resp.setEmail(saved.getEmail());
+//        resp.setRole(saved.getRole()); // enum
+//        resp.setPhone(saved.getPhone());
+//        resp.setPassword(saved.getPassword());
+//        resp.setAddress(saved.getAddress());
+//        resp.setCreatedAt(saved.getCreatedAt() != null
+//                ? saved.getCreatedAt().formatted(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
+//        resp.setUpdatedAt(saved.getUpdatedAt() != null
+//                ? saved.getUpdatedAt().formatted(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
+//
+//        
+//
+//        return ResponseEntity.ok(resp);
+//
+//	}
+//
+//}

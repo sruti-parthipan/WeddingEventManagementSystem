@@ -2,6 +2,8 @@ package com.ey.service;
 
 import java.time.format.DateTimeFormatter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,6 +13,8 @@ import com.ey.dto.request.VendorRegistrationRequest;
 import com.ey.dto.response.VendorRegistrationResponse;
 import com.ey.entities.Vendor;
 import com.ey.enums.Role;
+import com.ey.exception.EmailAlreadyExistsException;
+import com.ey.exception.VendorCreationException;
 import com.ey.repository.VendorRepository;
 
 import jakarta.transaction.Transactional;
@@ -23,7 +27,7 @@ public class VendorServiceImpl implements VendorService{
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
+    private static final Logger logger = LoggerFactory.getLogger(VendorServiceImpl.class);
 	@Override
 	@Transactional
 	public ResponseEntity<?> createVendor(@Valid VendorRegistrationRequest request) {
@@ -31,9 +35,10 @@ public class VendorServiceImpl implements VendorService{
 
 		// Assuming vendors use contactEmail as unique email
 		        if (vendorRepository.findByContactEmail(request.getContactEmail()).isPresent()) {
-		            return ResponseEntity.badRequest().body("Email already exists");
+		            //return ResponseEntity.badRequest().body("Email already exists");
+		            throw new EmailAlreadyExistsException("Email already exists");
 		        }
-
+try {
 		        Vendor v = new Vendor();
 		        v.setName(request.getName());
 		        v.setServiceType(request.getServiceType());
@@ -58,6 +63,11 @@ Vendor saved = vendorRepository.save(v);
         resp.setUpdatedAt(saved.getUpdatedAt() != null
                 ? saved.getUpdatedAt().formatted(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
 		return ResponseEntity.ok(resp);
+	}
+catch (Exception ex) {
+    logger.error("Unexpected error during vendor creation", ex);
+    throw new VendorCreationException("Vendor creation failed");
+}
 	}
 
 }

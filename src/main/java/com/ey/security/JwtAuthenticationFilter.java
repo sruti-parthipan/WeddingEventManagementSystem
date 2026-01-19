@@ -72,6 +72,7 @@ import java.util.Map;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.ey.config.UserPrincipal;
@@ -97,18 +98,75 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         setFilterProcessesUrl("/api/auth/login"); // Custom login endpoint
     }
 
-    @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) {
-        try {
-            // Parse login request body
-            LoginBody creds = new ObjectMapper().readValue(request.getInputStream(), LoginBody.class);
-            UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(creds.getEmail(), creds.getPassword());
-            return authManager.authenticate(authToken);
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to parse login request", ex);
-        }
+//    @Override
+//    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) {
+//        try {
+//            // Parse login request body
+//            LoginBody creds = new ObjectMapper().readValue(request.getInputStream(), LoginBody.class);
+//            UsernamePasswordAuthenticationToken authToken =
+//                    new UsernamePasswordAuthenticationToken(creds.getEmail(), creds.getPassword());
+//            return authManager.authenticate(authToken);
+//        } catch (Exception ex) {
+//            throw new RuntimeException("Failed to parse login request", ex);
+//        }
+//    }
+
+@Override
+public Authentication attemptAuthentication(HttpServletRequest request,
+                                            HttpServletResponse response) {
+    try {
+        LoginBody creds = new ObjectMapper().readValue(request.getInputStream(), LoginBody.class);
+
+        UsernamePasswordAuthenticationToken authToken =
+                new UsernamePasswordAuthenticationToken(creds.getEmail(), creds.getPassword());
+
+        return authManager.authenticate(authToken); // Spring will call unsuccessfulAuthentication() if wrong
+    } catch (IOException e) {
+        throw new RuntimeException(e);
     }
+}
+@Override
+protected void unsuccessfulAuthentication(HttpServletRequest request,
+                                          HttpServletResponse response,
+                                          AuthenticationException failed)
+        throws IOException {
+
+    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    response.setContentType("application/json");
+
+    Map<String, String> error = new HashMap<>();
+    error.put("message", "Invalid email or password");
+
+    new ObjectMapper().writeValue(response.getWriter(), error);
+}
+
+
+//@Override
+//public Authentication attemptAuthentication(HttpServletRequest request,
+//                                            HttpServletResponse response) {
+//    try {
+//        LoginBody creds = new ObjectMapper().readValue(request.getInputStream(), LoginBody.class);
+//
+//        UsernamePasswordAuthenticationToken authToken =
+//                new UsernamePasswordAuthenticationToken(creds.getEmail(), creds.getPassword());
+//
+//        return authManager.authenticate(authToken);
+//
+//    } catch (Exception ex) {
+//        try {
+//            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+//            response.setContentType("application/json");
+//
+//            Map<String, String> error = new HashMap<>();
+//            error.put("message", "Invalid email or password");
+//
+//            new ObjectMapper().writeValue(response.getWriter(), error);
+//        } catch (IOException ignored) {}
+//
+//        throw new RuntimeException("Invalid login");   // You asked for throwing
+//    }
+
+
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request,

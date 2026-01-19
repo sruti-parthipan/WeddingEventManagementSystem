@@ -1,55 +1,3 @@
-//
-//
-//package com.ey.service;
-//
-//import com.ey.dto.request.AdminRegistrationRequest;
-//import com.ey.dto.response.AdminLoginResponse;
-//import com.ey.entities.Admin;
-//import com.ey.enums.Role;
-//import com.ey.repository.AdminRepository;
-//import com.ey.service.AdminService;
-//import jakarta.transaction.Transactional;
-//import org.springframework.security.crypto.password.PasswordEncoder;
-//import org.springframework.stereotype.Service;
-//
-//import java.time.format.DateTimeFormatter;
-//
-//@Service
-//public class AdminServiceImpl implements AdminService {
-//
-//    private final AdminRepository adminRepository;
-//    private final PasswordEncoder passwordEncoder;
-//
-//    public AdminServiceImpl(AdminRepository adminRepository, PasswordEncoder passwordEncoder) {
-//        this.adminRepository = adminRepository;
-//        this.passwordEncoder = passwordEncoder;
-//    }
-//
-//    @Override
-//    @Transactional
-//    public AdminLoginResponse createAdmin(AdminRegistrationRequest request) {
-//        // uniqueness validation here if required (or keep in controller)
-//        Admin admin = new Admin();
-//        admin.setName(request.getName());
-//        admin.setEmail(request.getEmail());
-//        admin.setPassword(passwordEncoder.encode(request.getPassword()));
-//        admin.setRole(Role.ADMIN);
-//
-//        Admin saved = adminRepository.save(admin);
-//
-//        AdminLoginResponse resp = new AdminLoginResponse();
-//        resp.setId(saved.getId());
-//        resp.setName(saved.getName());
-//        resp.setEmail(saved.getEmail());
-//        resp.setRole(saved.getRole().name());
-//        resp.setCreatedAt(saved.getCreatedAt() != null
-//                ? saved.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
-//        resp.setUpdatedAt(saved.getUpdatedAt() != null
-//                ? saved.getUpdatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
-//
-//        return resp;
-//    }
-//}
 
 
 
@@ -59,12 +7,10 @@ package com.ey.service;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AccountExpiredException;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -91,7 +37,12 @@ import com.ey.enums.Role;
 import com.ey.exception.AdminCreationException;
 import com.ey.exception.AdminLoginException;
 import com.ey.exception.AuthenticationFailedException;
+import com.ey.exception.ClientFetchException;
+import com.ey.exception.ClientNotFoundException;
 import com.ey.exception.EmailAlreadyExistsException;
+import com.ey.exception.NoClientsFoundException;
+import com.ey.exception.NoVendorsFoundException;
+import com.ey.exception.VendorFetchException;
 import com.ey.mapper.ClientMapper;
 import com.ey.mapper.VendorMapper;
 import com.ey.repository.AdminRepository;
@@ -269,7 +220,7 @@ logger.warn("Admin login failed: Account disabled -> " + email);
         throw new AdminLoginException("Login failed");
     }
 }
-
+//--------------------------------message
 //@Override
 //public ResponseEntity<?> loginAdmin(AdminLoginRequest request) {
 //    String email = request.getEmail();
@@ -314,136 +265,290 @@ logger.warn("Admin login failed: Account disabled -> " + email);
 //        throw new AdminLoginException("Login failed");
 //    }
 //}
+//----------------------------------------------------------------------------------------get all clients
 
-	@Override
-	public ResponseEntity<?> getAllClients() {
-		// Fetch the entities from table
+@Override
+public ResponseEntity<?> getAllClients() {
+
+    logger.info("Get all clients request received");
+
+    try {
+        List<Client> clients = clientRepository.findAll();
+
+        if (clients == null || clients.isEmpty()) {
+            logger.warn("No clients present");
+            throw new NoClientsFoundException("No clients present");
+        }
+
+        List<ClientResponse> clientList = new ArrayList<>();
+        for (Client client : clients) {
+            clientList.add(ClientMapper.clientToResponse(client));
+        }
+
+        logger.info("Fetched clients successfully. count=" + clientList.size());
+        return ResponseEntity.ok(clientList);
+
+    } catch (NoClientsFoundException ex) {
+        // Let it bubble to your global handler later; for now, rethrow
+        throw ex;
+
+    } catch (Exception ex) {
+        logger.error("Unexpected error while fetching clients: " + ex.getMessage(), ex);
+        throw new ClientFetchException("Failed to fetch clients");
+    }
+}
+
+//	@Override
+//	public ResponseEntity<?> getAllClients() {
+//		// Fetch the entities from table
+////		List<Client> clients = clientRepository.findAll();
+////
+////		if (clients.isEmpty()) {
+////			return ResponseEntity.status(HttpStatus.OK).body("No clients present");
+////		}
+////		return ResponseEntity.ok(clients);//returning entity itself or we can cut the passwords
+////		
 //		List<Client> clients = clientRepository.findAll();
-//
 //		if (clients.isEmpty()) {
-//			return ResponseEntity.status(HttpStatus.OK).body("No clients present");
+//			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No clients present");
 //		}
-//		return ResponseEntity.ok(clients);//returning entity itself or we can cut the passwords
-//		
-		List<Client> clients = clientRepository.findAll();
-		if (clients.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No clients present");
-		}
-		List<ClientResponse> clientList  = new ArrayList<>();
-		for(Client client : clients)
-		{
-			clientList.add(ClientMapper.clientToResponse(client));
-		}
-		return ResponseEntity.ok(clientList);
-	}
+//		List<ClientResponse> clientList  = new ArrayList<>();
+//		for(Client client : clients)
+//		{
+//			clientList.add(ClientMapper.clientToResponse(client));
+//		}
+//		return ResponseEntity.ok(clientList);
+//	}
 
-	@Override
-	public ResponseEntity<?> getAllVendors() {
-		// TODO Auto-generated method stub
-		
-		List<Vendor> vendors = vendorRepository.findAll();
-		if(vendors.isEmpty()) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No vendors present");
-		}
-		List<VendorRegistrationResponse> vendorList  = new ArrayList<>();
-		for(Vendor vendor : vendors)
-		{
-			vendorList.add(VendorMapper.vendorToResponse(vendor));
-		}
-		return ResponseEntity.ok(vendorList);
-	}
+//	
+@Override
+public ResponseEntity<?> getAllVendors() {
+
+    logger.info("Get all vendors request received");
+
+    try {
+        List<Vendor> vendors = vendorRepository.findAll();
+
+        if (vendors == null || vendors.isEmpty()) {
+            logger.warn("No vendors present");
+            throw new NoVendorsFoundException("No vendors present");
+        }
+
+        List<VendorRegistrationResponse> vendorList = new ArrayList<>();
+        for (Vendor vendor : vendors) {
+            vendorList.add(VendorMapper.vendorToResponse(vendor));
+        }
+
+        logger.info("Fetched vendors successfully. count=" + vendorList.size());
+        return ResponseEntity.ok(vendorList);
+
+    } catch (NoVendorsFoundException ex) {
+        // Known case, rethrow so your global handler can map status later
+        throw ex;
+
+    } catch (Exception ex) {
+        logger.error("Unexpected error while fetching vendors: " + ex.getMessage(), ex);
+        throw new VendorFetchException("Failed to fetch vendors");
+    }
+}
+
+//@Override
+//public ResponseEntity<?> getClientById(Long id) {
+//
+//    Optional<Client> opt = clientRepository.findById(id);
+//
+//    if (opt.isEmpty()) {
+////        logger.warn("no client with id {}", id);
+//        return new ResponseEntity<>("ClientId you entered is not present",
+//                                    HttpStatus.NOT_FOUND);
+//    }
+//     ClientResponse response = ClientMapper.clientToResponse(opt.get());
+//    return ResponseEntity.ok(response);
+//}
+//
+//
+//@Override
+//public ResponseEntity<?> getClientByName(String name) {
+//	// TODO Auto-generated method stub
+//	Optional<Client> optdata = clientRepository.findByName(name);
+//	if (optdata.isEmpty()) {
+//		//logger.warn("no student with id"+id);
+//		return new ResponseEntity<>(" Client Name you entered is not present", HttpStatus.NOT_FOUND);
+//	}
+//	List<ClientResponse> studentList = new ArrayList<>();
+//	studentList.add(ClientMapper.clientToResponse(optdata.get()));
+//
+//	// return list of studentResponse
+//	return ResponseEntity.ok(studentList);
+//
+//}
+//
+//@Override
+//public ResponseEntity<?> getClientByEmail(String email) {
+//	// TODO Auto-generated method stub
+//	Optional<Client> optdata = clientRepository.findByEmail(email);
+//	if (optdata.isEmpty()) {
+//		//logger.warn("no student with id"+id);
+//		return new ResponseEntity<>(" Client email you entered is not present", HttpStatus.NOT_FOUND);
+//	}
+//	List<ClientResponse> studentList = new ArrayList<>();
+//	studentList.add(ClientMapper.clientToResponse(optdata.get()));
+//
+//	// return list of studentResponse
+//	return ResponseEntity.ok(studentList);
+//}
+//
+//@Override
+//public ResponseEntity<?> getClientByPhone(String phone) {
+//	// TODO Auto-generated method stub
+//	Optional<Client> optdata = clientRepository.findByPhone(phone);
+//	if (optdata.isEmpty()) {
+//		//logger.warn("no student with id"+id);
+//		return new ResponseEntity<>(" Client phone no you entered is not present", HttpStatus.NOT_FOUND);
+//	}
+//	List<ClientResponse> studentList = new ArrayList<>();
+//	studentList.add(ClientMapper.clientToResponse(optdata.get()));
+//
+//	// return list of studentResponse
+//	return ResponseEntity.ok(studentList);
+//}
+//
+//@Override
+//public ResponseEntity<?> getClientByAddress(String address) {
+//	// TODO Auto-generated method stub
+//	Optional<Client> optdata = clientRepository.findByAddress(address);
+//	if (optdata.isEmpty()) {
+//		//logger.warn("no student with id"+id);
+//		return new ResponseEntity<>(" Client phone no you entered is not present", HttpStatus.NOT_FOUND);
+//	}
+//	List<ClientResponse> studentList = new ArrayList<>();
+//	studentList.add(ClientMapper.clientToResponse(optdata.get()));
+//
+//	// return list of studentResponse
+//	return ResponseEntity.ok(studentList);
+//}
+//
+//@Override
+//public ResponseEntity<?> getClientByNameAndEmail(String name, String email) {
+//
+//    Optional<Client> opt = clientRepository.findByNameAndEmail(name, email);
+//
+//    if (opt.isEmpty()) {
+//        //logger.warn("no client with name {} AND address {}", name, email);
+//        return new ResponseEntity<>(
+//                "No client found with given name AND email",
+//                HttpStatus.NOT_FOUND
+//        );
+//    }
+//
+//    return ResponseEntity.ok(ClientMapper.clientToResponse(opt.get()));
+//}
+
+//---------------------------
 
 @Override
 public ResponseEntity<?> getClientById(Long id) {
+    logger.info("Get client by id request received id=" + id);
 
-    Optional<Client> opt = clientRepository.findById(id);
+    try {
+        Client client = clientRepository.findById(id)
+                .orElseThrow(() -> {
+                    logger.warn("Client not found by id=" + id);
+                    return new ClientNotFoundException("Client not found for id: " + id);
+                });
 
-    if (opt.isEmpty()) {
-//        logger.warn("no client with id {}", id);
-        return new ResponseEntity<>("ClientId you entered is not present",
-                                    HttpStatus.NOT_FOUND);
+        ClientResponse response = ClientMapper.clientToResponse(client);
+        logger.info("Client fetched successfully id=" + id);
+        return ResponseEntity.ok(response);
+
+    } catch (ClientNotFoundException ex) {
+        throw ex;
+    } catch (Exception ex) {
+        logger.error("Unexpected error in getClientById id=" + id + " -> " + ex.getMessage(), ex);
+        throw ex; // let global handler return 500 later
     }
-     ClientResponse response = ClientMapper.clientToResponse(opt.get());
-    return ResponseEntity.ok(response);
 }
-
 
 @Override
 public ResponseEntity<?> getClientByName(String name) {
-	// TODO Auto-generated method stub
-	Optional<Client> optdata = clientRepository.findByName(name);
-	if (optdata.isEmpty()) {
-		//logger.warn("no student with id"+id);
-		return new ResponseEntity<>(" Client Name you entered is not present", HttpStatus.NOT_FOUND);
-	}
-	List<ClientResponse> studentList = new ArrayList<>();
-	studentList.add(ClientMapper.clientToResponse(optdata.get()));
+    logger.info("Get client by name request received name=" + name);
 
-	// return list of studentResponse
-	return ResponseEntity.ok(studentList);
+    Client client = clientRepository.findByName(name)
+            .orElseThrow(() -> {
+                logger.warn("Client not found by name=" + name);
+                return new ClientNotFoundException("Client not found for name: " + name);
+            });
 
+    List<ClientResponse> result = new ArrayList<>();
+    result.add(ClientMapper.clientToResponse(client));
+
+    logger.info("Client fetched by name successfully name=" + name);
+    return ResponseEntity.ok(result);
 }
 
 @Override
 public ResponseEntity<?> getClientByEmail(String email) {
-	// TODO Auto-generated method stub
-	Optional<Client> optdata = clientRepository.findByEmail(email);
-	if (optdata.isEmpty()) {
-		//logger.warn("no student with id"+id);
-		return new ResponseEntity<>(" Client email you entered is not present", HttpStatus.NOT_FOUND);
-	}
-	List<ClientResponse> studentList = new ArrayList<>();
-	studentList.add(ClientMapper.clientToResponse(optdata.get()));
+    logger.info("Get client by email request received email=" + email);
 
-	// return list of studentResponse
-	return ResponseEntity.ok(studentList);
+    Client client = clientRepository.findByEmail(email)
+            .orElseThrow(() -> {
+                logger.warn("Client not found by email=" + email);
+                return new ClientNotFoundException("Client not found for email: " + email);
+            });
+
+    List<ClientResponse> result = new ArrayList<>();
+    result.add(ClientMapper.clientToResponse(client));
+
+    logger.info("Client fetched by email successfully email=" + email);
+    return ResponseEntity.ok(result);
 }
 
 @Override
 public ResponseEntity<?> getClientByPhone(String phone) {
-	// TODO Auto-generated method stub
-	Optional<Client> optdata = clientRepository.findByPhone(phone);
-	if (optdata.isEmpty()) {
-		//logger.warn("no student with id"+id);
-		return new ResponseEntity<>(" Client phone no you entered is not present", HttpStatus.NOT_FOUND);
-	}
-	List<ClientResponse> studentList = new ArrayList<>();
-	studentList.add(ClientMapper.clientToResponse(optdata.get()));
+    logger.info("Get client by phone request received phone=" + phone);
 
-	// return list of studentResponse
-	return ResponseEntity.ok(studentList);
+    Client client = clientRepository.findByPhone(phone)
+            .orElseThrow(() -> {
+                logger.warn("Client not found by phone=" + phone);
+                return new ClientNotFoundException("Client not found for phone: " + phone);
+            });
+
+    List<ClientResponse> result = new ArrayList<>();
+    result.add(ClientMapper.clientToResponse(client));
+
+    logger.info("Client fetched by phone successfully phone=" + phone);
+    return ResponseEntity.ok(result);
 }
 
 @Override
 public ResponseEntity<?> getClientByAddress(String address) {
-	// TODO Auto-generated method stub
-	Optional<Client> optdata = clientRepository.findByAddress(address);
-	if (optdata.isEmpty()) {
-		//logger.warn("no student with id"+id);
-		return new ResponseEntity<>(" Client phone no you entered is not present", HttpStatus.NOT_FOUND);
-	}
-	List<ClientResponse> studentList = new ArrayList<>();
-	studentList.add(ClientMapper.clientToResponse(optdata.get()));
+    logger.info("Get client by address request received address=" + address);
 
-	// return list of studentResponse
-	return ResponseEntity.ok(studentList);
+    Client client = clientRepository.findByAddress(address)
+            .orElseThrow(() -> {
+                logger.warn("Client not found by address=" + address);
+                return new ClientNotFoundException("Client not found for address: " + address);
+            });
+
+    List<ClientResponse> result = new ArrayList<>();
+    result.add(ClientMapper.clientToResponse(client));
+
+    logger.info("Client fetched by address successfully address=" + address);
+    return ResponseEntity.ok(result);
 }
 
 @Override
 public ResponseEntity<?> getClientByNameAndEmail(String name, String email) {
+    logger.info("Get client by name & email request received name=" + name + ", email=" + email);
 
-    Optional<Client> opt = clientRepository.findByNameAndEmail(name, email);
+    Client client = clientRepository.findByNameAndEmail(name, email)
+            .orElseThrow(() -> {
+                logger.warn("Client not found by name=" + name + " and email=" + email);
+                return new ClientNotFoundException("No client found with given name and email");
+            });
 
-    if (opt.isEmpty()) {
-        //logger.warn("no client with name {} AND address {}", name, email);
-        return new ResponseEntity<>(
-                "No client found with given name AND email",
-                HttpStatus.NOT_FOUND
-        );
-    }
-
-    return ResponseEntity.ok(ClientMapper.clientToResponse(opt.get()));
+    logger.info("Client fetched by name & email successfully name=" + name + ", email=" + email);
+    return ResponseEntity.ok(ClientMapper.clientToResponse(client));
 }
-
 
 }
