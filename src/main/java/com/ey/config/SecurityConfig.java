@@ -58,6 +58,7 @@
 //    }
 //}
 
+
 package com.ey.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -104,7 +105,7 @@ public class SecurityConfig {
             		
                 .requestMatchers("/api/auth/**").permitAll() // Registration + Login
                 .requestMatchers("/api/admin/register").permitAll()
-                .requestMatchers("/api/client/register").permitAll()
+                .requestMatchers("/api/client/register").permitAll()   
                 .requestMatchers("/api/vendor/register").permitAll()
 .requestMatchers("/api/forgot-password").permitAll()
 .requestMatchers("/api/reset-token").permitAll()

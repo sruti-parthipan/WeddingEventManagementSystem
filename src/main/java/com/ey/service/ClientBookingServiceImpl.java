@@ -83,7 +83,6 @@ public class ClientBookingServiceImpl implements ClientBookingService {
         event.setStatus(EventStatus.PLANNED); // idempotent with your lifecycle
         Booking booking = BookingMapper.toEntity(request, event, vendor);
         booking.setStatus(BookingStatus.REQUESTED);
-
         Booking saved = bookingRepository.save(booking);
 
         return ResponseEntity

@@ -1,7 +1,9 @@
 package com.ey.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,15 +11,21 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.ey.dto.response.ReviewResponse;
 import com.ey.dto.response.VendorRegistrationResponse;
+import com.ey.entities.Review;
 import com.ey.entities.Vendor;
 import com.ey.enums.ServiceType;
+import com.ey.mapper.ReviewMapper;
 import com.ey.mapper.VendorMapper;
+import com.ey.repository.ReviewRepository;
 import com.ey.repository.VendorRepository;
 @Service
 public class ClientViewVendorServiceImpl implements ClientViewVendorService{
 	@Autowired
 	private VendorRepository vendorRepository;
+	@Autowired
+	private ReviewRepository reviewRepository;
 	
 	@Override
 	public ResponseEntity<?> getAllVendors() {
@@ -249,11 +257,123 @@ private ServiceType parseServiceType(String input) {
     return null;
 }
 
+@Override
+public ResponseEntity<?> listReviewsForVendor(Long vendorId, String email) {
+
+    Optional<Vendor> opt = vendorRepository.findById(vendorId);
+    if (opt.isEmpty()) {
+        return new ResponseEntity<>("VendorId you entered is not present", HttpStatus.NOT_FOUND);
+    }
+
+    List<Review> reviews = reviewRepository.findByVendor_IdOrderByCreatedAtDesc(vendorId);
+    if (reviews == null || reviews.isEmpty()) {
+        return new ResponseEntity<>("No reviews found for this vendor", HttpStatus.NOT_FOUND);
+    }
+
+    // Map entities -> DTOs
+    List<ReviewResponse> body = reviews.stream()
+            .map(ReviewMapper::toDto)
+            .toList();
+
+    return ResponseEntity.ok(body);
+}
+
+@Override
+public ResponseEntity<?> getRatingsForVendor(Long vendorId, String email) {
+
+    Optional<Vendor> opt = vendorRepository.findById(vendorId);
+    if (opt.isEmpty()) {
+        return new ResponseEntity<>("VendorId you entered is not present", HttpStatus.NOT_FOUND);
+    }
+
+    List<Review> reviews = reviewRepository.findByVendor_IdOrderByCreatedAtDesc(vendorId);
+    if (reviews == null || reviews.isEmpty()) {
+        return new ResponseEntity<>("No ratings found for this vendor", HttpStatus.NOT_FOUND);
+    }
+
+    double avg = reviews.stream()
+            .mapToInt(Review::getRating)
+            .average()
+            .orElse(0.0);
+
+    Map<String, Object> resp = new HashMap<>();
+    resp.put("vendorId", vendorId);
+    resp.put("totalReviews", reviews.size());
+    resp.put("averageRating", avg);
+
+    return ResponseEntity.ok(resp);
+}
+
+
+
+@Override
+public ResponseEntity<?> listAllVendorReviews(String email) {
+	// TODO Auto-generated method stub
+
+List<Review> reviews = reviewRepository.findAllByOrderByCreatedAtDesc();
+        if (reviews == null || reviews.isEmpty()) {
+            return new ResponseEntity<>("No reviews found", HttpStatus.NOT_FOUND);
+        }
+
+        List<ReviewResponse> body = reviews.stream()
+                .map(ReviewMapper::toDto)
+                .toList();
+
+        return ResponseEntity.ok(body);
+    }
+
+}
 
 
 
 
+//@Override
+//public ResponseEntity<?> listReviewsForVendor(Long vendorId, String email) {
+//	// TODO Auto-generated method stub
+//
+//Optional<Vendor> opt = vendorRepository.findById(vendorId);
+//    if (opt.isEmpty()) {
+//        return new ResponseEntity<>("VendorId you entered is not present", HttpStatus.NOT_FOUND);
+//    }
+//
+//    List<Review> reviews = reviewRepository.findByVendor_IdOrderByCreatedAtDesc(vendorId);
+//    if (reviews == null || reviews.isEmpty()) {
+//        return new ResponseEntity<>("No reviews found for this vendor", HttpStatus.NOT_FOUND);
+//    }
+//
+//    return ResponseEntity.ok(reviews);
+//
+//	
+//}
+//
+//
+//@Override
+//public ResponseEntity<?> getRatingsForVendor(Long vendorId, String email) {
+//
+//    Optional<Vendor> opt = vendorRepository.findById(vendorId);
+//    if (opt.isEmpty()) {
+//        return new ResponseEntity<>("VendorId you entered is not present", HttpStatus.NOT_FOUND);
+//    }
+//
+//    List<Review> reviews = reviewRepository.findByVendor_IdOrderByCreatedAtDesc(vendorId);
+//    if (reviews == null || reviews.isEmpty()) {
+//        return new ResponseEntity<>("No ratings found for this vendor", HttpStatus.NOT_FOUND);
+//    }
+//
+//    double avg = reviews.stream()
+//            .mapToInt(Review::getRating)
+//            .average()
+//            .orElse(0.0);
+//
+//    Map<String, Object> resp = new HashMap<>();
+//    resp.put("vendorId", vendorId);
+//    resp.put("totalReviews", reviews.size());
+//    resp.put("averageRating", avg);
+//
+//    return ResponseEntity.ok(resp);
+//}
+//
+//
 
 
    
-}

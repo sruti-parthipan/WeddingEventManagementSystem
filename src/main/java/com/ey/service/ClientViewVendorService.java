@@ -26,6 +26,12 @@ public interface ClientViewVendorService {
 
 	ResponseEntity<?> getVendorsByServiceTypeAndBasePrice(String serviceType, Double basePrice);
 
+	ResponseEntity<?> listReviewsForVendor(Long vendorId, String email);
+
+	ResponseEntity<?> getRatingsForVendor(Long vendorId, String email);
+
+	ResponseEntity<?> listAllVendorReviews(String email);
+
 
 
 	

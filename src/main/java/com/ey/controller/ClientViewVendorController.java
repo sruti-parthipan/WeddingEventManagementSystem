@@ -2,6 +2,7 @@ package com.ey.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -75,6 +76,24 @@ public ResponseEntity<?> getVendorsByServiceTypeAndBasePrice(@PathVariable Strin
                                                              @PathVariable Double basePrice) {
     return clientViewVendorService.getVendorsByServiceTypeAndBasePrice(serviceType, basePrice);
 }
+@GetMapping("/{vendorId}/reviews")
+public ResponseEntity<?> listReviews(@PathVariable Long vendorId, Authentication auth) {
+    String email = auth.getName();
+    return clientViewVendorService.listReviewsForVendor(vendorId, email);
+}
+
+// Get compact ratings list + aggregates for a vendor
+@GetMapping("/{vendorId}/ratings")
+public ResponseEntity<?> getRatings(@PathVariable Long vendorId, Authentication auth) {
+    String email = auth.getName();
+    return clientViewVendorService.getRatingsForVendor(vendorId, email);
+}
+
+@GetMapping("/reviews")
+    public ResponseEntity<?> listAllVendorReviews(Authentication auth) {
+        String email = auth.getName();
+        return clientViewVendorService.listAllVendorReviews(email);
+    }
 
 
 
