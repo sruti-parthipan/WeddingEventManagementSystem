@@ -12,10 +12,9 @@ import com.ey.dto.response.MessageResponse;
 
 public class AuthController {
 
-	  @PostMapping("/logout")
-	    public ResponseEntity<MessageResponse> logout() {
-	        return ResponseEntity.ok(new MessageResponse("Logged out successfully"));
-	    }
- 
+	@PostMapping("/logout")
+	public ResponseEntity<MessageResponse> logout() {
+		return ResponseEntity.ok(new MessageResponse("Logged out successfully"));
+	}
+
 }
- 

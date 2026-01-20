@@ -1,50 +1,51 @@
 package com.ey.entities;
 
-
-
-
-
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
+
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.ey.enums.Role;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+
 @Entity
-@Table(name = "admins", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "email")
-})
+@Table(name = "admins", uniqueConstraints = { @UniqueConstraint(columnNames = "email") })
 public class Admin {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    private String name;
+	private String name;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+	@Column(nullable = false, unique = true)
+	private String email;
 
-    // Store hashed password (e.g., BCrypt)
-    @Column(nullable = false)
-    private String password;
+	@Column(nullable = false)
+	private String password;
 
-@Enumerated(EnumType.STRING)
-@Column(nullable = false)
-private Role role = Role.ADMIN;
-    
-    @CreationTimestamp
-    @Column(updatable = false)
-    private LocalDateTime createdAt;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private Role role = Role.ADMIN;
 
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+	@CreationTimestamp
+	@Column(updatable = false)
+	private LocalDateTime createdAt;
 
-    public Admin() {
-    }
+	@UpdateTimestamp
+	private LocalDateTime updatedAt;
 
-    
+	public Admin() {
+	}
 
 	public Admin(Long id, String name, String email, String password, Role role, LocalDateTime createdAt,
 			LocalDateTime updatedAt) {
@@ -57,8 +58,6 @@ private Role role = Role.ADMIN;
 		this.createdAt = createdAt;
 		this.updatedAt = updatedAt;
 	}
-
-
 
 	public Long getId() {
 		return id;
@@ -116,5 +115,4 @@ private Role role = Role.ADMIN;
 		this.updatedAt = updatedAt;
 	}
 
-    
 }

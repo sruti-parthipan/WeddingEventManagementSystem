@@ -1,48 +1,54 @@
 package com.ey.entities;
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
+
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.ey.enums.Role;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+
 @Entity
-@Table(name = "clients", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "email")
-})
+@Table(name = "clients", uniqueConstraints = { @UniqueConstraint(columnNames = "email") })
 public class Client {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    private String name;
+	private String name;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+	@Column(nullable = false, unique = true)
+	private String email;
 
-    // Store hashed password (e.g., BCrypt)
-    @Column(nullable = false)
-    private String password;
+	
+	@Column(nullable = false)
+	private String password;
 
-    private String phone;
+	private String phone;
 
-    private String address;
+	private String address;
 
-@Enumerated(EnumType.STRING)
-@Column(nullable = false)
-private Role role = Role.CLIENT;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private Role role = Role.CLIENT;
 
+	@CreationTimestamp
+	@Column(updatable = false)
+	private String createdAt;
 
-    @CreationTimestamp
-    @Column(updatable = false)
-    private String createdAt;
+	@UpdateTimestamp
+	private String updatedAt;
 
-    @UpdateTimestamp
-    private String updatedAt;
-
-    public Client() {
-    }
+	public Client() {
+	}
 
 	public Client(Long id, String name, String email, String password, String phone, String address, Role role,
 			String createdAt, String updatedAt) {
@@ -130,7 +136,4 @@ private Role role = Role.CLIENT;
 		this.updatedAt = updatedAt;
 	}
 
-   
-
 }
-

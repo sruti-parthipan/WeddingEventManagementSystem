@@ -1,60 +1,59 @@
 package com.ey.entities;
 
-
-
-
-
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.ey.enums.Role;
 import com.ey.enums.ServiceType;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+
 @Entity
-@Table(name = "vendors", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "contactEmail")
-})
+@Table(name = "vendors", uniqueConstraints = { @UniqueConstraint(columnNames = "contactEmail") })
 public class Vendor {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    private String name;
+	private String name;
 
-    // CATERING, DECORATION, PHOTOGRAPHY, MUSIC, VENUE, TRANSPORT
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ServiceType serviceType;
+	// CATERING, DECORATION, PHOTOGRAPHY, MUSIC, VENUE, TRANSPORT
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private ServiceType serviceType;
 
-    @Column(nullable = false, unique = true)
-    private String contactEmail;
+	@Column(nullable = false, unique = true)
+	private String contactEmail;
 
-    private String contactPhone;
+	private String contactPhone;
 
-    private Double basePrice;
+	private Double basePrice;
 
-    // Store hashed password (e.g., BCrypt)
-    @Column(nullable = false)
-    private String password;
+	@Column(nullable = false)
+	private String password;
 
-@Enumerated(EnumType.STRING)
-@Column(nullable = false)
-private Role role = Role.VENDOR;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private Role role = Role.VENDOR;
 
+	@CreationTimestamp
+	@Column(updatable = false)
+	private String createdAt;
 
-    @CreationTimestamp
-    @Column(updatable = false)
-    private String createdAt;
+	@UpdateTimestamp
+	private String updatedAt;
 
-    @UpdateTimestamp
-    private String updatedAt;
-
-    public Vendor() {
-    }
-    
+	public Vendor() {
+	}
 
 	public Vendor(Long id, String name, ServiceType serviceType, String contactEmail, String contactPhone,
 			Double basePrice, String password, Role role, String createdAt, String updatedAt) {
@@ -70,7 +69,6 @@ private Role role = Role.VENDOR;
 		this.createdAt = createdAt;
 		this.updatedAt = updatedAt;
 	}
-
 
 	public Long getId() {
 		return id;
@@ -152,6 +150,4 @@ private Role role = Role.VENDOR;
 		this.updatedAt = updatedAt;
 	}
 
-    
 }
-

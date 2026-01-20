@@ -2,8 +2,6 @@ package com.ey.service;
 
 import org.springframework.http.ResponseEntity;
 
-import com.ey.enums.ServiceType;
-
 public interface ClientViewVendorService {
 
 	ResponseEntity<?> getAllVendors();
@@ -32,7 +30,4 @@ public interface ClientViewVendorService {
 
 	ResponseEntity<?> listAllVendorReviews(String email);
 
-
-
-	
 }

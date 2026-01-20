@@ -43,13 +43,6 @@
 //    @Override public boolean isCredentialsNonExpired() { return true; }
 //    @Override public boolean isEnabled() { return true; }
 //}
-
-
-
-
-
-
-
 package com.ey.config;
 
 import com.ey.enums.Role;

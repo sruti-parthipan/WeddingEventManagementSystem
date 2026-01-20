@@ -1,16 +1,7 @@
 
 package com.ey.dto.response;
 
-import java.time.LocalDateTime;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import com.ey.enums.Role;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 
 public class ClientResponse {
 	private Long id;
@@ -18,8 +9,6 @@ public class ClientResponse {
 	private String name;
 
 	private String email;
-
-	
 
 	private String phone;
 
@@ -54,8 +43,6 @@ public class ClientResponse {
 	public void setEmail(String email) {
 		this.email = email;
 	}
-
-	
 
 	public String getPhone() {
 		return phone;
@@ -96,5 +83,5 @@ public class ClientResponse {
 	public void setUpdatedAt(String updatedAt) {
 		this.updatedAt = updatedAt;
 	}
-	
+
 }

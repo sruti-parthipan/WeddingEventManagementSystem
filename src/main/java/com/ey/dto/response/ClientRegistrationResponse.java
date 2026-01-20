@@ -1,15 +1,6 @@
 package com.ey.dto.response;
 
-import java.time.LocalDateTime;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import com.ey.enums.Role;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 
 public class ClientRegistrationResponse {
 	private Long id;
@@ -101,5 +92,5 @@ public class ClientRegistrationResponse {
 	public void setUpdatedAt(String updatedAt) {
 		this.updatedAt = updatedAt;
 	}
-	
+
 }

@@ -1,7 +1,5 @@
 package com.ey.repository;
 
-
-
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,11 +8,9 @@ import com.ey.entities.Vendor;
 import com.ey.enums.ServiceType;
 
 public interface VendorRepository extends JpaRepository<Vendor, Long> {
-    Optional<Vendor> findByContactEmail(String contactEmail); // or findByEmail(...)
+	Optional<Vendor> findByContactEmail(String contactEmail); // or findByEmail(...)
 
 	Optional<Vendor> findByName(String name);
-
-	//Optional<Vendor> findByServiceTypeIgnoreCase(String email);
 
 	Optional<Vendor> findByContactPhone(String phone);
 
@@ -28,7 +24,4 @@ public interface VendorRepository extends JpaRepository<Vendor, Long> {
 
 	List<Vendor> findByServiceTypeAndBasePrice(ServiceType type, Double basePrice);
 
-	//List<Vendor> findByServiceTypeIgnoreCaseAndBasePrice(String serviceType, Double basePrice);
-
-	
 }

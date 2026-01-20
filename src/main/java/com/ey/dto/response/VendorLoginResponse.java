@@ -2,45 +2,57 @@ package com.ey.dto.response;
 
 public class VendorLoginResponse {
 
-private Long id;
-    private String name;
-    private String email;      // maps from vendor.contactEmail
-    private String role;       // "VENDOR"
-    private String createdAt;  // ISO-8601 string
-    private String updatedAt;
+	private Long id;
+	private String name;
+	private String email;
+	private String role;
+	private String createdAt;
+	private String updatedAt;
+
 	public Long getId() {
 		return id;
 	}
+
 	public void setId(Long id) {
 		this.id = id;
 	}
+
 	public String getName() {
 		return name;
 	}
+
 	public void setName(String name) {
 		this.name = name;
 	}
+
 	public String getEmail() {
 		return email;
 	}
+
 	public void setEmail(String email) {
 		this.email = email;
 	}
+
 	public String getRole() {
 		return role;
 	}
+
 	public void setRole(String role) {
 		this.role = role;
 	}
+
 	public String getCreatedAt() {
 		return createdAt;
 	}
+
 	public void setCreatedAt(String createdAt) {
 		this.createdAt = createdAt;
 	}
+
 	public String getUpdatedAt() {
 		return updatedAt;
 	}
+
 	public void setUpdatedAt(String updatedAt) {
 		this.updatedAt = updatedAt;
 	}

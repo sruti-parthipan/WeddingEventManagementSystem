@@ -21,7 +21,7 @@ public class VendorBookingController {
     @Autowired
     private VendorBookingService vendorBookingService;
 
-    // View all my bookings (optional helper you already use)
+    // View all my bookings 
     @GetMapping
     public ResponseEntity<?> listMyBookings(Authentication auth) {
         return vendorBookingService.listMyBookings(auth.getName());

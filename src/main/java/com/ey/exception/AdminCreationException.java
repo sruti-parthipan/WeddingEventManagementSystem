@@ -2,8 +2,13 @@ package com.ey.exception;
 
 public class AdminCreationException extends RuntimeException {
 
-public AdminCreationException(String message) {
-        super(message);
-    }
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public AdminCreationException(String message) {
+		super(message);
+	}
 
 }

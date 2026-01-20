@@ -31,248 +31,237 @@ import com.ey.repository.EventRepository;
 @Service
 public class ClientEventServiceImpl implements ClientEventService {
 
-    @Autowired
-    private EventRepository eventRepository;
+	@Autowired
+	private EventRepository eventRepository;
 
-    @Autowired
-    private ClientRepository clientRepository;
+	@Autowired
+	private ClientRepository clientRepository;
 
-    private static final Logger logger = LoggerFactory.getLogger(ClientEventServiceImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(ClientEventServiceImpl.class);
 
-    // ⭐ CHECK IF THE LOGGED-IN USER IS ADMIN
-    private boolean isAdmin() {
-        return org.springframework.security.core.context.SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getAuthorities()
-                .stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-    }
+	// ⭐ CHECK IF THE LOGGED-IN USER IS ADMIN
+	private boolean isAdmin() {
+		return org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication()
+				.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+	}
 
-    // ------------------------------------------------------------------
-    // CREATE EVENT (CLIENT ONLY)
-    // ------------------------------------------------------------------
-    @Override
-    @Transactional
-    public ResponseEntity<?> createEvent(EventRegistrationRequest request, String email) {
+	// CREATE EVENT (CLIENT ONLY)
 
-        logger.info("Create event request received email=" + email);
+	@Override
+	@Transactional
+	public ResponseEntity<?> createEvent(EventRegistrationRequest request, String email) {
 
-        try {
-            Client client = clientRepository.findByEmail(email)
-                    .orElseThrow(() -> new ClientUnauthorizedException("Client not authenticated"));
+		logger.info("Create event request received email=" + email);
 
-            Event event = EventMapper.toEntity(request);
-            event.setClient(client);
+		try {
+			Client client = clientRepository.findByEmail(email)
+					.orElseThrow(() -> new ClientUnauthorizedException("Client not authenticated"));
 
-            Event saved = eventRepository.save(event);
+			Event event = EventMapper.toEntity(request);
+			event.setClient(client);
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(EventMapper.toResponse(saved));
+			Event saved = eventRepository.save(event);
 
-        } catch (Exception ex) {
-            throw new EventCreateException("Failed to create event");
-        }
-    }
+			return ResponseEntity.status(HttpStatus.CREATED).body(EventMapper.toResponse(saved));
 
-    // ------------------------------------------------------------------
-    // LIST ALL MY EVENTS  (ADMIN → ALL EVENTS)
-    // ------------------------------------------------------------------
-    @Override
-    public ResponseEntity<?> listMyEvents(String email) {
+		} catch (Exception ex) {
+			throw new EventCreateException("Failed to create event");
+		}
+	}
 
-        boolean admin = isAdmin();
-        List<Event> events;
+	// LIST ALL MY EVENTS (ADMIN → ALL EVENTS)
 
-        if (admin) {
-            events = eventRepository.findAllByOrderByCreatedAtDesc();  // ⭐ ADMIN sees all
-        } else {
-            Client client = clientRepository.findByEmail(email)
-                    .orElseThrow(() -> new ClientUnauthorizedException("Client not authenticated"));
-            events = eventRepository.findByClientOrderByCreatedAtDesc(client);
-        }
+	@Override
+	public ResponseEntity<?> listMyEvents(String email) {
 
-        List<EventRegistrationResponse> res = new ArrayList<>();
-        for (Event e : events) res.add(EventMapper.toResponse(e));
+		boolean admin = isAdmin();
+		List<Event> events;
 
-        return ResponseEntity.ok(res);
-    }
+		if (admin) {
+			events = eventRepository.findAllByOrderByCreatedAtDesc(); // ⭐ ADMIN sees all
+		} else {
+			Client client = clientRepository.findByEmail(email)
+					.orElseThrow(() -> new ClientUnauthorizedException("Client not authenticated"));
+			events = eventRepository.findByClientOrderByCreatedAtDesc(client);
+		}
 
-    // ------------------------------------------------------------------
-    // LIST BY TITLE (ADMIN → ALL)
-    // ------------------------------------------------------------------
-    @Override
-    public ResponseEntity<?> listMyEventsByTitle(String title, String email) {
+		List<EventRegistrationResponse> res = new ArrayList<>();
+		for (Event e : events)
+			res.add(EventMapper.toResponse(e));
 
-        boolean admin = isAdmin();
-        List<Event> events;
+		return ResponseEntity.ok(res);
+	}
 
-        if (admin) {
-            events = eventRepository.findByTitleIgnoreCase(title);
-        } else {
-            Client client = clientRepository.findByEmail(email)
-                    .orElseThrow(() -> new ClientUnauthorizedException("Client not authenticated"));
-            events = eventRepository.findByClientAndTitleIgnoreCase(client, title);
-        }
+	// LIST BY TITLE (ADMIN - ALL)
 
-        if (events.isEmpty())
-            throw new NoEventsFoundException("No events found with this title");
+	@Override
+	public ResponseEntity<?> listMyEventsByTitle(String title, String email) {
 
-        List<EventRegistrationResponse> res = new ArrayList<>();
-        for (Event e : events) res.add(EventMapper.toResponse(e));
+		boolean admin = isAdmin();
+		List<Event> events;
 
-        return ResponseEntity.ok(res);
-    }
+		if (admin) {
+			events = eventRepository.findByTitleIgnoreCase(title);
+		} else {
+			Client client = clientRepository.findByEmail(email)
+					.orElseThrow(() -> new ClientUnauthorizedException("Client not authenticated"));
+			events = eventRepository.findByClientAndTitleIgnoreCase(client, title);
+		}
 
-    // ------------------------------------------------------------------
-    // LIST BY STATUS (ADMIN → ALL)
-    // ------------------------------------------------------------------
-    @Override
-    public ResponseEntity<?> listMyEventsByStatus(String status, String email) {
+		if (events.isEmpty())
+			throw new NoEventsFoundException("No events found with this title");
 
-        boolean admin = isAdmin();
-        EventStatus st;
+		List<EventRegistrationResponse> res = new ArrayList<>();
+		for (Event e : events)
+			res.add(EventMapper.toResponse(e));
 
-        try {
-            st = EventStatus.valueOf(status.toUpperCase());
-        } catch (Exception e) {
-            throw new InvalidStatusException("Invalid status value");
-        }
+		return ResponseEntity.ok(res);
+	}
 
-        List<Event> events;
+	// LIST BY STATUS (ADMIN - ALL)
 
-        if (admin) {
-            events = eventRepository.findByStatus(st);
-        } else {
-            Client client = clientRepository.findByEmail(email)
-                    .orElseThrow(() -> new ClientUnauthorizedException("Client not authenticated"));
-            events = eventRepository.findByClientAndStatus(client, st);
-        }
+	@Override
+	public ResponseEntity<?> listMyEventsByStatus(String status, String email) {
 
-        if (events.isEmpty())
-            throw new NoEventsFoundException("No events found with this status");
+		boolean admin = isAdmin();
+		EventStatus st;
 
-        List<EventRegistrationResponse> res = new ArrayList<>();
-        for (Event e : events) res.add(EventMapper.toResponse(e));
+		try {
+			st = EventStatus.valueOf(status.toUpperCase());
+		} catch (Exception e) {
+			throw new InvalidStatusException("Invalid status value");
+		}
 
-        return ResponseEntity.ok(res);
-    }
+		List<Event> events;
 
-    // ------------------------------------------------------------------
-    // LIST BY DATE (ADMIN → ALL)
-    // ------------------------------------------------------------------
-    @Override
-    public ResponseEntity<?> listMyEventsByDate(String date, String email) {
+		if (admin) {
+			events = eventRepository.findByStatus(st);
+		} else {
+			Client client = clientRepository.findByEmail(email)
+					.orElseThrow(() -> new ClientUnauthorizedException("Client not authenticated"));
+			events = eventRepository.findByClientAndStatus(client, st);
+		}
 
-        boolean admin = isAdmin();
-        List<Event> events;
+		if (events.isEmpty())
+			throw new NoEventsFoundException("No events found with this status");
 
-        if (admin) {
-            events = eventRepository.findByEventDate(date);
-        } else {
-            Client client = clientRepository.findByEmail(email)
-                    .orElseThrow(() -> new ClientUnauthorizedException("Client not authenticated"));
+		List<EventRegistrationResponse> res = new ArrayList<>();
+		for (Event e : events)
+			res.add(EventMapper.toResponse(e));
 
-            events = eventRepository.findByClientAndEventDate(client, date);
-        }
+		return ResponseEntity.ok(res);
+	}
 
-        if (events.isEmpty())
-            throw new NoEventsFoundException("No events found on this date");
+	// LIST BY DATE (ADMIN -ALL)
 
-        List<EventRegistrationResponse> res = new ArrayList<>();
-        for (Event e : events) res.add(EventMapper.toResponse(e));
+	@Override
+	public ResponseEntity<?> listMyEventsByDate(String date, String email) {
 
-        return ResponseEntity.ok(res);
-    }
+		boolean admin = isAdmin();
+		List<Event> events;
 
-    // ------------------------------------------------------------------
-    // LIST BY VENUE (ADMIN → ALL)
-    // ------------------------------------------------------------------
-    @Override
-    public ResponseEntity<?> listMyEventsByVenue(String venue, String email) {
+		if (admin) {
+			events = eventRepository.findByEventDate(date);
+		} else {
+			Client client = clientRepository.findByEmail(email)
+					.orElseThrow(() -> new ClientUnauthorizedException("Client not authenticated"));
 
-        boolean admin = isAdmin();
-        List<Event> events;
+			events = eventRepository.findByClientAndEventDate(client, date);
+		}
 
-        if (admin) {
-            events = eventRepository.findByVenueIgnoreCase(venue);
-        } else {
-            Client client = clientRepository.findByEmail(email)
-                    .orElseThrow(() -> new ClientUnauthorizedException("Client not authenticated"));
-            events = eventRepository.findByClientAndVenueIgnoreCase(client, venue);
-        }
+		if (events.isEmpty())
+			throw new NoEventsFoundException("No events found on this date");
 
-        if (events.isEmpty())
-            throw new NoEventsFoundException("No events found with this venue");
+		List<EventRegistrationResponse> res = new ArrayList<>();
+		for (Event e : events)
+			res.add(EventMapper.toResponse(e));
 
-        List<EventRegistrationResponse> res = new ArrayList<>();
-        for (Event e : events) res.add(EventMapper.toResponse(e));
+		return ResponseEntity.ok(res);
+	}
 
-        return ResponseEntity.ok(res);
-    }
+	// LIST BY VENUE (ADMIN -ALL)
 
-    // ------------------------------------------------------------------
-    // GET EVENT BY ID (ADMIN → SEE ANY EVENT)
-    // ------------------------------------------------------------------
-    @Override
-    public ResponseEntity<?> getEventById(Long id, String email) {
+	@Override
+	public ResponseEntity<?> listMyEventsByVenue(String venue, String email) {
 
-        boolean admin = isAdmin();
+		boolean admin = isAdmin();
+		List<Event> events;
 
-        Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new EventNotFoundException("Event not found"));
+		if (admin) {
+			events = eventRepository.findByVenueIgnoreCase(venue);
+		} else {
+			Client client = clientRepository.findByEmail(email)
+					.orElseThrow(() -> new ClientUnauthorizedException("Client not authenticated"));
+			events = eventRepository.findByClientAndVenueIgnoreCase(client, venue);
+		}
 
-        if (!admin) {
-            Client client = clientRepository.findByEmail(email)
-                    .orElseThrow(() -> new ClientUnauthorizedException("Client not authenticated"));
+		if (events.isEmpty())
+			throw new NoEventsFoundException("No events found with this venue");
 
-            if (!event.getClient().getId().equals(client.getId()))
-                throw new NotAuthorizedException("Not allowed");
-        }
+		List<EventRegistrationResponse> res = new ArrayList<>();
+		for (Event e : events)
+			res.add(EventMapper.toResponse(e));
 
-        return ResponseEntity.ok(EventMapper.toResponse(event));
-    }
+		return ResponseEntity.ok(res);
+	}
 
-    // ------------------------------------------------------------------
-    // UPDATE EVENT (CLIENT ONLY)
-    // ------------------------------------------------------------------
-    @Override
-    @Transactional
-    public ResponseEntity<?> updateEvent(Long id, EventUpdateRequest request, String email) {
+	// GET EVENT BY ID (ADMIN SEE ANY EVENT)
 
-        Client client = clientRepository.findByEmail(email)
-                .orElseThrow(() -> new ClientUnauthorizedException("Client not authenticated"));
+	@Override
+	public ResponseEntity<?> getEventById(Long id, String email) {
 
-        Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new EventNotFoundException("Event not found"));
+		boolean admin = isAdmin();
 
-        if (!event.getClient().getId().equals(client.getId()))
-            throw new NotAuthorizedException("Not authorized");
+		Event event = eventRepository.findById(id).orElseThrow(() -> new EventNotFoundException("Event not found"));
 
-        EventMapper.applyUpdate(event, request);
+		if (!admin) {
+			Client client = clientRepository.findByEmail(email)
+					.orElseThrow(() -> new ClientUnauthorizedException("Client not authenticated"));
 
-        Event saved = eventRepository.save(event);
+			if (!event.getClient().getId().equals(client.getId()))
+				throw new NotAuthorizedException("Not allowed");
+		}
 
-        return ResponseEntity.ok(EventMapper.toResponse(saved));
-    }
+		return ResponseEntity.ok(EventMapper.toResponse(event));
+	}
 
-    // ------------------------------------------------------------------
-    // DELETE EVENT (CLIENT ONLY)
-    // ------------------------------------------------------------------
-    @Override
-    @Transactional
-    public ResponseEntity<?> deleteEvent(Long id, String email) {
+	// ------------------------------------------------------------------
+	// UPDATE EVENT (CLIENT ONLY)
+	// ------------------------------------------------------------------
+	@Override
+	@Transactional
+	public ResponseEntity<?> updateEvent(Long id, EventUpdateRequest request, String email) {
 
-        Client client = clientRepository.findByEmail(email)
-                .orElseThrow(() -> new ClientUnauthorizedException("Client not authenticated"));
+		Client client = clientRepository.findByEmail(email)
+				.orElseThrow(() -> new ClientUnauthorizedException("Client not authenticated"));
 
-        Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new EventNotFoundException("Event not found"));
+		Event event = eventRepository.findById(id).orElseThrow(() -> new EventNotFoundException("Event not found"));
 
-        if (!event.getClient().getId().equals(client.getId()))
-            throw new NotAuthorizedException("Not authorized to delete this event");
+		if (!event.getClient().getId().equals(client.getId()))
+			throw new NotAuthorizedException("Not authorized");
 
-        eventRepository.delete(event);
+		EventMapper.applyUpdate(event, request);
 
-        return ResponseEntity.ok("Event deleted successfully");
-    }
+		Event saved = eventRepository.save(event);
+
+		return ResponseEntity.ok(EventMapper.toResponse(saved));
+	}
+
+	// DELETE EVENT (CLIENT ONLY)
+	@Override
+	@Transactional
+	public ResponseEntity<?> deleteEvent(Long id, String email) {
+
+		Client client = clientRepository.findByEmail(email)
+				.orElseThrow(() -> new ClientUnauthorizedException("Client not authenticated"));
+
+		Event event = eventRepository.findById(id).orElseThrow(() -> new EventNotFoundException("Event not found"));
+
+		if (!event.getClient().getId().equals(client.getId()))
+			throw new NotAuthorizedException("Not authorized to delete this event");
+
+		eventRepository.delete(event);
+
+		return ResponseEntity.ok("Event deleted successfully");
+	}
 }

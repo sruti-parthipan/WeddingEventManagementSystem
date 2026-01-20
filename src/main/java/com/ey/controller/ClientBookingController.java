@@ -1,5 +1,4 @@
 
-
 package com.ey.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,13 +15,11 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/client/bookings")
 public class ClientBookingController {
 
-    @Autowired
-    private ClientBookingService clientBookingService;
+	@Autowired
+	private ClientBookingService clientBookingService;
 
-    @PostMapping
-    public ResponseEntity<?> createBooking(@Valid @RequestBody BookingCreateRequest request,
-                                           Authentication auth) {
-        // same auth pattern as your events controller
-        return clientBookingService.createBooking(request, auth.getName());
-    }
+	@PostMapping
+	public ResponseEntity<?> createBooking(@Valid @RequestBody BookingCreateRequest request, Authentication auth) {
+		return clientBookingService.createBooking(request, auth.getName());
+	}
 }

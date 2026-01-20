@@ -9,8 +9,7 @@ import com.ey.entities.Client;
 import com.ey.entities.Event;
 import com.ey.enums.EventStatus;
 
-
-public interface EventRepository  extends JpaRepository<Event, Long> {
+public interface EventRepository extends JpaRepository<Event, Long> {
 
 	List<Event> findByClientOrderByCreatedAtDesc(Client client);
 

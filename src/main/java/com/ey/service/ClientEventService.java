@@ -5,11 +5,7 @@ import org.springframework.http.ResponseEntity;
 import com.ey.dto.request.EventRegistrationRequest;
 import com.ey.dto.request.EventUpdateRequest;
 
-import jakarta.validation.Valid;
-
 public interface ClientEventService {
-
-	
 
 	ResponseEntity<?> createEvent(EventRegistrationRequest request, String email);
 
@@ -28,6 +24,5 @@ public interface ClientEventService {
 	ResponseEntity<?> deleteEvent(Long id, String name);
 
 	ResponseEntity<?> getEventById(Long id, String email);
-
 
 }

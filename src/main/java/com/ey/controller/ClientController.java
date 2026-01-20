@@ -1,8 +1,5 @@
 package com.ey.controller;
 
-
-
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,13 +16,13 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/client")
 public class ClientController {
 
-    @Autowired
-    private ClientService clientService;
+	@Autowired
+	private ClientService clientService;
 
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody ClientRegistrationRequest request) {
-        return clientService.createClient(request);
-    }
+	@PostMapping("/register")
+	public ResponseEntity<?> register(@Valid @RequestBody ClientRegistrationRequest request) {
+		return clientService.createClient(request);
+	}
 
-    // No login endpoint here. Login is common at /api/auth/login
+	// No login endpoint here. Login is common at /api/auth/login
 }

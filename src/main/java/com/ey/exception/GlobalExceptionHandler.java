@@ -32,12 +32,12 @@ public class GlobalExceptionHandler {
 
  private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
- /* ---------- Utility: simple message body ---------- */
+
  private ResponseEntity<Object> msg(HttpStatus status, String message) {
      return ResponseEntity.status(status).body(message);
  }
 
- /* ========== AUTH / LOGIN ========== */
+
 
  @ExceptionHandler(AuthenticationFailedException.class)
  public ResponseEntity<Object> handleAuthFailed(AuthenticationFailedException ex, HttpServletRequest req) {
@@ -51,7 +51,6 @@ public class GlobalExceptionHandler {
      return msg(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage()); // 500
  }
 
- // Spring Security specifics (if they bubble up)
  @ExceptionHandler(BadCredentialsException.class)
  public ResponseEntity<Object> handleBadCreds(BadCredentialsException ex, HttpServletRequest req) {
      logger.warn("Bad credentials");
@@ -70,7 +69,7 @@ public class GlobalExceptionHandler {
      return msg(HttpStatus.FORBIDDEN, "Account locked. Contact support");
  }
 
- /* ========== REGISTRATION / CREATION / UPDATE ERRORS ========== */
+ 
 
  @ExceptionHandler(EmailAlreadyExistsException.class)
  public ResponseEntity<Object> handleEmailExists(EmailAlreadyExistsException ex, HttpServletRequest req) {
@@ -96,7 +95,6 @@ public class GlobalExceptionHandler {
      return msg(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage()); // 500
  }
 
- /* ========== UNAUTHORIZED / FORBIDDEN ========== */
 
  @ExceptionHandler({
          ClientUnauthorizedException.class,
@@ -113,8 +111,6 @@ public class GlobalExceptionHandler {
      return msg(HttpStatus.FORBIDDEN, ex.getMessage()); // 403
  }
 
- /* ========== NOT FOUND ========== */
-
  @ExceptionHandler({
          ClientNotFoundException.class,
          VendorNotFoundException.class,
@@ -127,7 +123,6 @@ public class GlobalExceptionHandler {
      return msg(HttpStatus.NOT_FOUND, ex.getMessage()); // 404
  }
 
- // For list/collection empties
  @ExceptionHandler({
          NoClientsFoundException.class,
          NoVendorsFoundException.class,
@@ -140,7 +135,6 @@ public class GlobalExceptionHandler {
      return msg(HttpStatus.NOT_FOUND, ex.getMessage()); // 404
  }
 
- /* ========== BAD REQUEST / BUSINESS RULES ========== */
 
  @ExceptionHandler({
          InvalidStatusException.class,
@@ -159,7 +153,7 @@ public class GlobalExceptionHandler {
      return msg(HttpStatus.BAD_REQUEST, ex.getMessage()); // 400
  }
 
- /* ========== VALIDATION (DTO, Params) ========== */
+
 
  // @Valid on @RequestBody DTOs
  @ExceptionHandler(MethodArgumentNotValidException.class)

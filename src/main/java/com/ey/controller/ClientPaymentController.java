@@ -1,5 +1,4 @@
 
-
 package com.ey.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,31 +14,33 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ey.dto.request.PaymentCreateRequest;
 import com.ey.service.PaymentService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/client/payments")
 public class ClientPaymentController {
 
-    @Autowired
-    private PaymentService paymentService;
+	@Autowired
+	private PaymentService paymentService;
 
-    // Create payment (PENDING) for client's event
-    @PostMapping
-    public ResponseEntity<?> create(@RequestBody PaymentCreateRequest req, Authentication auth) {
-        String email = auth.getName();
-        return paymentService.createPayment(req, email);
-    }
+	// Create payment (PENDING) for client's event
+	@PostMapping
+	public ResponseEntity<?> create(@Valid @RequestBody PaymentCreateRequest req, Authentication auth) {
+		String email = auth.getName();
+		return paymentService.createPayment(req, email);
+	}
 
-    // Get a payment by id (client can only view their own event's payments)
-    @GetMapping("/{paymentId}")
-    public ResponseEntity<?> getById(@PathVariable Long paymentId, Authentication auth) {
-        String email = auth.getName();
-        return paymentService.getPaymentById(paymentId, email);
-    }
+	// Get a payment by id (client can only view their own event payments)
+	@GetMapping("/{paymentId}")
+	public ResponseEntity<?> getById(@PathVariable Long paymentId, Authentication auth) {
+		String email = auth.getName();
+		return paymentService.getPaymentById(paymentId, email);
+	}
 
-    // List payments for an event (must belong to the client)
-    @GetMapping("/by-event/{eventId}")
-    public ResponseEntity<?> listByEvent(@PathVariable Long eventId, Authentication auth) {
-        String email = auth.getName();
-        return paymentService.listPaymentsForEvent(eventId, email);
-    }
+	// List payments for an event (must belong to the client)
+	@GetMapping("/by-event/{eventId}")
+	public ResponseEntity<?> listByEvent(@PathVariable Long eventId, Authentication auth) {
+		String email = auth.getName();
+		return paymentService.listPaymentsForEvent(eventId, email);
+	}
 }
